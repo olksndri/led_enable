@@ -1,24 +1,18 @@
-
 #include <stdint.h>
 #include <stdio.h>
 
 int main(void) {
+	uint32_t volatile *const pGPIOA_AHB1_RCC_REG 		= (uint32_t*)(0x40023800 + 0x30);
+	uint32_t volatile *const pGPIOA_PORT_MODE_REG 		= (uint32_t*)(0x40020000 + 0x00);
+	uint32_t const volatile *const pGPIOA_PORT_IN_REG 	= (uint32_t*)(0x40020000 + 0x10);
+	uint32_t volatile *const pGPIOA_PORT_OUT_REG 		= (uint32_t*)(0x40020000 + 0x14);
 
-	uint32_t *const GPIOA_AHB1_RCC = (uint32_t*)(0x40023800 + 0x30);
-	uint32_t *const GPIOA_PORT_MODE = (uint32_t*)(0x40020000 + 0x00);
-	uint32_t *const GPIOA_PORT_INPUT = (uint32_t*)(0x40020000 + 0x10);
-	uint32_t *const GPIOA_PORT_OUTPUT = (uint32_t*)(0x40020000 + 0x14);
-
-	*GPIOA_AHB1_RCC |= 1; // enable clock on AHB1 BUS (for GPIOA)
-	*GPIOA_PORT_MODE &= ~(3); // enable PA0 as input
-	*GPIOA_PORT_MODE |= (1 << 10); // enable PA5 as output
+	*pGPIOA_AHB1_RCC_REG 	|= 1; // enable clock on AHB1 BUS (for GPIOA)
+	*pGPIOA_PORT_MODE_REG	&= ~(3); // set PA0 mode as input
+	*pGPIOA_PORT_MODE_REG 	|= (1 << 10); // set PA5 mode as output
 
 	while(1) {
-		uint32_t input = *GPIOA_PORT_INPUT & 1;
-		if(input) {
-			*GPIOA_PORT_OUTPUT |= (1 << 5);
-		} else {
-			*GPIOA_PORT_OUTPUT &= ~(1 << 5);
-		}
+		if (*pGPIOA_PORT_IN_REG & 1) *pGPIOA_PORT_OUT_REG |= (1 << 5);
+		else *pGPIOA_PORT_OUT_REG &= ~(1 << 5);
 	}
 }
