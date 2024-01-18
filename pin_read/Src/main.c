@@ -1,18 +1,20 @@
 #include <stdint.h>
 #include <stdio.h>
+#include "main.h"
+
+RCC_AHB1ENR_t volatile *const RCC_AHB1ENR 	= (RCC_AHB1ENR_t*)(0x40023800 + 0x30);
+GPIOx_MODER_t volatile *const GPIOA_MODER 	= (GPIOx_MODER_t*)(0x40020000 + 0x00);
+GPIOx_IDR_t volatile *const GPIOA_IDR 		= (GPIOx_IDR_t*)(0x40020000 + 0x10);
+GPIOx_ODR_t volatile *const GPIOA_ODR 		= (GPIOx_ODR_t*)(0x40020000 + 0x14);
 
 int main(void) {
-	uint32_t volatile *const pGPIOA_AHB1_RCC_REG 		= (uint32_t*)(0x40023800 + 0x30);
-	uint32_t volatile *const pGPIOA_PORT_MODE_REG 		= (uint32_t*)(0x40020000 + 0x00);
-	uint32_t const volatile *const pGPIOA_PORT_IN_REG 	= (uint32_t*)(0x40020000 + 0x10);
-	uint32_t volatile *const pGPIOA_PORT_OUT_REG 		= (uint32_t*)(0x40020000 + 0x14);
-
-	*pGPIOA_AHB1_RCC_REG 	|= 1; // enable clock on AHB1 BUS (for GPIOA)
-	*pGPIOA_PORT_MODE_REG	&= ~(3); // set PA0 mode as input
-	*pGPIOA_PORT_MODE_REG 	|= (1 << 10); // set PA5 mode as output
+	RCC_AHB1ENR->GPIOA_EN 	|= 1; // enable clock on AHB1 BUS (for GPIOA)
+	GPIOA_MODER->MODER0 	&= 0; 	// set PA0 mode as input
+	GPIOA_MODER->MODER5 	|= 1; 	// set PA5 mode as output
 
 	while(1) {
-		if (*pGPIOA_PORT_IN_REG & 1) *pGPIOA_PORT_OUT_REG |= (1 << 5);
-		else *pGPIOA_PORT_OUT_REG &= ~(1 << 5);
+		if (GPIOA_IDR->IDR0 & 1) GPIOA_ODR->ODR5 |= 1;
+		else GPIOA_ODR->ODR5 &= 0;
 	}
 }
+
